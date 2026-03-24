@@ -7,7 +7,7 @@
   "applications": {
     "zotero": {
       "id": "zotero-impress@jinnosukekato.github.io",
-      "strict_min_version": "6.999",
+      "strict_min_version": "7.0",
       "strict_max_version": "8.*",
       "update_url": "https://example.invalid/zotero-impress/updates.json"
     }
