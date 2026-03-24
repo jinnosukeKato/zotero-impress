@@ -1,5 +1,27 @@
-function install() {}
-function uninstall() {}
+function install() { }
+function uninstall() { }
+
+function hasImpressFile(item) {
+  const filename = item?.attachmentFilename?.toLowerCase?.() || "";
+  if (filename.endsWith(".odp") || filename.endsWith(".odf")) {
+    return true;
+  }
+
+  if (!item?.isRegularItem?.()) {
+    return false;
+  }
+
+  const attachmentIDs = item.getAttachments ? item.getAttachments() : [];
+  if (!attachmentIDs.length) {
+    return false;
+  }
+
+  const attachmentItems = Zotero.Items.get(attachmentIDs) || [];
+  return attachmentItems.some(att => {
+    const name = att?.attachmentFilename?.toLowerCase?.() || "";
+    return name.endsWith(".odp") || name.endsWith(".odf");
+  });
+}
 
 async function startup({ id, version, rootURI }) {
   Zotero.debug("Zotero Impress started up");
@@ -12,26 +34,18 @@ async function startup({ id, version, rootURI }) {
     target: 'main/library/item',
     menus: [{
       menuType: 'menuitem',
-      label: 'PDFを生成 (Impress)', // Since l10n isn't set up yet, using direct label or l10nID
       // icon: `${rootURI}icon.svg`, // Assuming we'll add an icon later
       onShowing: (event, context) => {
-        const isOpenOfficeFile = context.items?.some(item => {
-          // If the item is not a regular item (e.g., it's a note or a tag), skip it
-          if (!item.isRegularItem()) return false;
-
-          // Check if item itself is an attachment or if it has child attachments
-          const attachments = item.getAttachments ? item.getAttachments() : [];
-          const attachmentItems = Zotero.Items.get(attachments);
-          return attachmentItems.some(att =>
-            att.attachmentFilename?.endsWith('.odp') ||
-            att.attachmentFilename?.endsWith('.odf')
-          );
-        });
-        context.setVisible(isOpenOfficeFile);
+        const items = context.items || [];
+        const menuElem = context.menuElem;
+        if (menuElem) {
+          menuElem.label = 'PDFを生成 (Impress)';
+        }
+        context.setVisible(items.some(hasImpressFile));
       },
       onCommand: async (event, context) => {
-        Zotero.debug("PDF generation triggered for items: " + JSON.stringify(context.items?.map(i => i.id)));
-        // ここでPDF生成ロジックを叩く
+        const itemIDs = (context.items || []).map(i => i.id);
+        Zotero.debug('PDF generation triggered for items: ' + JSON.stringify(itemIDs));
       }
     }]
   });

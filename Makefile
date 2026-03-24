@@ -1,5 +1,5 @@
 XPI_NAME := zotero-impress-dev.xpi
-XPI_FILES := manifest.json bootstrap.js
+XPI_FILES := manifest.json bootstrap.js locale
 
 .PHONY: all xpi clean
 
