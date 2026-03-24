@@ -1,0 +1,16 @@
+{
+  "manifest_version": 2,
+  "name": "Zotero Impress",
+  "version": "2.0",
+  "description": "Generate PDF from .odf files with LibreOffice Impress.",
+  "homepage_url": "https://github.com/jinnosukeKato/zotero-impress",
+  "applications": {
+    "zotero": {
+      "id": "zotero-impress@jinnosukekato.github.io",
+      "strict_min_version": "6.999",
+      "strict_max_version": "8.*",
+      "update_url": "https://example.invalid/zotero-impress/updates.json"
+    }
+  },
+  "author": "jinnosukeKato"
+}
