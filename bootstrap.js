@@ -26,6 +26,7 @@ function hasImpressFile(item) {
 async function startup({ id, version, rootURI }) {
   Zotero.debug("Zotero Impress started up");
   const pluginID = "zotero-impress@jinnosukekato.github.io";
+  Services.scriptloader.loadSubScript(rootURI + "core.js");
 
   // Register the right-click menu for items
   Zotero.MenuManager.registerMenu({
@@ -46,6 +47,12 @@ async function startup({ id, version, rootURI }) {
       onCommand: async (event, context) => {
         const itemIDs = (context.items || []).map(i => i.id);
         Zotero.debug('PDF generation triggered for items: ' + JSON.stringify(itemIDs));
+        for (const itemID of itemIDs) {
+          const item = Zotero.Items.get(itemID);
+          if (item) {
+            await convertOdpToPdf(item);
+          }
+        }
       }
     }]
   });
