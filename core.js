@@ -1,4 +1,4 @@
-async function convertOdpToPdf(item) {
+const convertOdpToPdf = async (item) => {
   const inputPath = await item.getFilePathAsync();
   if (!inputPath) {
     throw new Error("Input file path could not be resolved");
@@ -31,4 +31,4 @@ async function convertOdpToPdf(item) {
     file: Zotero.File.pathToFile(pdfPath),
     parentItemID
   });
-}
+};

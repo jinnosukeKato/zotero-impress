@@ -1,7 +1,7 @@
-function install() { }
-function uninstall() { }
+const install = () => { };
+const uninstall = () => { };
 
-function hasImpressFile(item) {
+const hasODPFile = (item) => {
   const filename = item?.attachmentFilename?.toLowerCase?.() || "";
   if (filename.endsWith(".odp")) {
     return true;
@@ -21,9 +21,9 @@ function hasImpressFile(item) {
     const name = att?.attachmentFilename?.toLowerCase?.() || "";
     return name.endsWith(".odp");
   });
-}
+};
 
-async function startup({ id, version, rootURI }) {
+const startup = async ({ id, version, rootURI }) => {
   Zotero.debug("Zotero Impress started up");
   const pluginID = "zotero-impress@jinnosukekato.github.io";
   Services.scriptloader.loadSubScript(rootURI + "core.js");
@@ -42,7 +42,7 @@ async function startup({ id, version, rootURI }) {
         if (menuElem) {
           menuElem.label = 'PDFを生成 (Impress)';
         }
-        context.setVisible(items.some(hasImpressFile));
+        context.setVisible(items.some(hasODPFile));
       },
       onCommand: async (event, context) => {
         const itemIDs = (context.items || []).map(i => i.id);
@@ -56,8 +56,8 @@ async function startup({ id, version, rootURI }) {
       }
     }]
   });
-}
+};
 
-function shutdown() {
+const shutdown = () => {
   Zotero.debug("Zotero Impress shutdown");
-}
+};
