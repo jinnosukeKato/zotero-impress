@@ -15,12 +15,6 @@ const hasODPFile = (item) => {
   if (!attachmentIDs.length) {
     return false;
   }
-
-  const attachmentItems = Zotero.Items.get(attachmentIDs) || [];
-  return attachmentItems.some(att => {
-    const name = att?.attachmentFilename?.toLowerCase?.() || "";
-    return name.endsWith(".odp");
-  });
 };
 
 const startup = async ({ id, version, rootURI }) => {
