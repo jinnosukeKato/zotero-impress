@@ -3,7 +3,7 @@ function uninstall() { }
 
 function hasImpressFile(item) {
   const filename = item?.attachmentFilename?.toLowerCase?.() || "";
-  if (filename.endsWith(".odp") || filename.endsWith(".odf")) {
+  if (filename.endsWith(".odp")) {
     return true;
   }
 
@@ -19,7 +19,7 @@ function hasImpressFile(item) {
   const attachmentItems = Zotero.Items.get(attachmentIDs) || [];
   return attachmentItems.some(att => {
     const name = att?.attachmentFilename?.toLowerCase?.() || "";
-    return name.endsWith(".odp") || name.endsWith(".odf");
+    return name.endsWith(".odp");
   });
 }
 
