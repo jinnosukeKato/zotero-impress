@@ -1,1 +1,1 @@
-zotero-impress-menu-generate-pdf = PDFを生成 (Impress)
+zotero-impress-menu-generate-pdf = Convert to PDF with Impress
