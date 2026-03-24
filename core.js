@@ -1,17 +1,34 @@
 async function convertOdpToPdf(item) {
-  const odpPath = await item.getFilePathAsync();
+  const inputPath = await item.getFilePathAsync();
+  if (!inputPath) {
+    throw new Error("Input file path could not be resolved");
+  }
+
+  const lower = inputPath.toLowerCase();
+  if (!lower.endsWith(".odp") && !lower.endsWith(".odf")) {
+    throw new Error("Selected file is not .odp/.odf: " + inputPath);
+  }
+
+  const outputDir = Zotero.getTempDirectory().path;
   const libreOfficePath = "/usr/bin/soffice";
 
-  const process = new Zotero.Process.run(libreOfficePath, [
+  await Zotero.Utilities.Internal.exec(libreOfficePath, [
     "--headless",
     "--convert-to", "pdf",
-    odpPath,
-    "--outdir", Zotero.getTempDirectory().path
+    inputPath,
+    "--outdir", outputDir
   ]);
 
-  const exitCode = await process.finished;
+  const baseName = PathUtils.filename(inputPath).replace(/\.[^.]+$/, "");
+  const pdfPath = PathUtils.join(outputDir, `${baseName}.pdf`);
 
-  if (exitCode === 0) {
-    await Zotero.Attachments.importRelativeFile(pdfPath, item.parentID);
+  if (!(await IOUtils.exists(pdfPath))) {
+    throw new Error("PDF was not generated: " + pdfPath);
   }
+
+  const parentItemID = item.parentItemID || item.parentID || item.id;
+  await Zotero.Attachments.importFromFile({
+    file: Zotero.File.pathToFile(pdfPath),
+    parentItemID
+  });
 }
