@@ -5,8 +5,8 @@ const convertOdpToPdf = async (item) => {
   }
 
   const lower = inputPath.toLowerCase();
-  if (!lower.endsWith(".odp")) {
-    throw new Error("Selected file is not .odp: " + inputPath);
+  if (!EXT_LIST.some(ext => lower.endsWith(ext))) {
+    throw new Error("Selected file is not a supported format: " + inputPath);
   }
 
   const outputDir = Zotero.getTempDirectory().path;

@@ -12,7 +12,7 @@ const loadFTLIntoWindow = (window) => {
 
 const hasODPFile = (item) => {
   const filename = item?.attachmentFilename?.toLowerCase?.() || "";
-  if (filename.endsWith(".odp")) {
+  if (EXT_LIST.some(ext => filename.endsWith(ext))) {
     return true;
   }
 
@@ -30,6 +30,9 @@ const startup = async ({ id, version, rootURI }) => {
   Zotero.debug("Zotero Impress started up");
   const pluginID = "zotero-impress@jinnosukekato.github.io";
   addonFTL = "zotero-impress-addon.ftl";
+
+  // Load the sub-modules before accessing any of their functions/variables
+  Services.scriptloader.loadSubScript(rootURI + "extensions.js");
   Services.scriptloader.loadSubScript(rootURI + "core.js");
   for (const window of Zotero.getMainWindows()) {
     if (!window.ZoteroPane) {
