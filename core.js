@@ -44,6 +44,9 @@ async function createAndOpenLibreOfficeSlide() {
     parentItem = null;
   }
 
+  // 現在開いている（選択中の）コレクションを取得
+  const collection = pane.getSelectedCollection();
+
   // 2. パスの設定
   const tempDir = PathUtils.tempDir;
   const newFileName = "新規プレゼンテーション.odp";
@@ -72,10 +75,23 @@ async function createAndOpenLibreOfficeSlide() {
     } else {
       // 親が無い場合は現在のユーザーライブラリのスタンドアロンアイテムにする
       attachmentOptions.libraryID = Zotero.Libraries.userLibraryID;
+
+      // 開いているコレクションがある場合はそのコレクションに追加するようにオプション指定
+      if (collection) {
+        attachmentOptions.collections = [collection.id];
+      }
     }
 
     // Zotero内にファイルをインポート（storageディレクトリへの配置も自動で行われます）
     const attachment = await Zotero.Attachments.importFromFile(attachmentOptions);
+
+    // importFromFileのオプションで追加されなかった場合へのフォールバック（念ため）
+    if (!parentItem && collection && attachment) {
+      if (!attachment.getCollections().includes(collection.id)) {
+        attachment.setCollections([collection.id]);
+        await attachment.saveTx();
+      }
+    }
 
     // 4. 一時フォルダに作ったファイルは不要になったので削除
     await IOUtils.remove(tempFilePath);
