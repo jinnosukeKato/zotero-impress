@@ -32,3 +32,62 @@ const convertOdpToPdf = async (item) => {
     parentItemID
   });
 };
+
+async function createAndOpenLibreOfficeSlide() {
+  // 1. 選択中のアイテム（親アイテム）を取得
+  const pane = Zotero.getActiveZoteroPane();
+  const selectedItems = pane.getSelectedItems();
+  let parentItem = selectedItems.length > 0 ? selectedItems[0] : null;
+
+  // 親アイテムが通常の文献（Regular Item）でない場合はスタンドアロンとして扱う
+  if (parentItem && !parentItem.isRegularItem()) {
+    parentItem = null;
+  }
+
+  // 2. パスの設定
+  const tempDir = PathUtils.tempDir;
+  const newFileName = "新規プレゼンテーション.odp";
+  const tempFilePath = PathUtils.join(tempDir, newFileName);
+
+  try {
+    // プラグイン同梱のテンプレートファイルの絶対パスを取得
+    const templateURL = addonRootURI + "content/template.odp";
+
+    // fetch APIを使ってテンプレートを読み込み、一時ファイルに保存
+    const response = await fetch(templateURL);
+    if (!response.ok) {
+      throw new Error(`Failed to load template from ${templateURL}: ${response.statusText}`);
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    await IOUtils.write(tempFilePath, new Uint8Array(arrayBuffer));
+
+    // 3. Zoteroのインポートオプションを設定
+    let attachmentOptions = {
+      file: tempFilePath,
+      title: "LibreOffice Slide",
+    };
+
+    if (parentItem) {
+      attachmentOptions.parentItemID = parentItem.id;
+    } else {
+      // 親が無い場合は現在のユーザーライブラリのスタンドアロンアイテムにする
+      attachmentOptions.libraryID = Zotero.Libraries.userLibraryID;
+    }
+
+    // Zotero内にファイルをインポート（storageディレクトリへの配置も自動で行われます）
+    const attachment = await Zotero.Attachments.importFromFile(attachmentOptions);
+
+    // 4. 一時フォルダに作ったファイルは不要になったので削除
+    await IOUtils.remove(tempFilePath);
+
+    // 5. 作成したアタッチメントをシステム既定のアプリ（LibreOffice）で開く
+    if (attachment) {
+      const importedPath = await attachment.getFilePathAsync();
+      Zotero.launchFile(importedPath);
+    }
+
+  } catch (error) {
+    Zotero.debug(`[Zotero Impress] エラーが発生しました: ${error}`);
+    Components.utils.reportError(error);
+  }
+}

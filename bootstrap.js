@@ -26,7 +26,10 @@ const hasODPFile = (item) => {
   }
 };
 
+var addonRootURI = "";
+
 const startup = async ({ id, version, rootURI }) => {
+  addonRootURI = rootURI;
   Zotero.debug("Zotero Impress started up");
   const pluginID = "zotero-impress@jinnosukekato.github.io";
   addonFTL = "zotero-impress-addon.ftl";
@@ -63,6 +66,19 @@ const startup = async ({ id, version, rootURI }) => {
             await convertOdpToPdf(item);
           }
         }
+      }
+    },
+    {
+      menuType: 'menuitem',
+      l10nID: 'zotero-impress-menu-new-presentation',
+      onShowing: (event, context) => {
+        const items = context.items || [];
+        const menuElem = context.menuElem;
+        // 常に表示（アイテムが選択されていなくても新規プレゼンテーションは作成できるため）
+        context.setVisible(true);
+      },
+      onCommand: async (event, context) => {
+        await createAndOpenLibreOfficeSlide();
       }
     }]
   });
