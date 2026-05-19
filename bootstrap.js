@@ -67,14 +67,17 @@ const startup = async ({ id, version, rootURI }) => {
           }
         }
       }
-    },
-    {
+    }]
+  });
+
+  Zotero.MenuManager.registerMenu({
+    menuID: `${pluginID}-new-presentation-menu`,
+    pluginID: pluginID,
+    target: 'main/library/addAttachment',
+    menus: [{
       menuType: 'menuitem',
       l10nID: 'zotero-impress-menu-new-presentation',
       onShowing: (event, context) => {
-        const items = context.items || [];
-        const menuElem = context.menuElem;
-        // 常に表示（アイテムが選択されていなくても新規プレゼンテーションは作成できるため）
         context.setVisible(true);
       },
       onCommand: async (event, context) => {
