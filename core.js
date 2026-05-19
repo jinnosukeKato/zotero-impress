@@ -33,47 +33,42 @@ const convertOdpToPdf = async (item) => {
   });
 };
 
-async function createAndOpenLibreOfficeSlide() {
-  // 1. 選択中のアイテム（親アイテム）を取得
+const createAndOpenLibreOfficeSlide = async () => {
+  // 選択中のアイテム（親アイテム）を取得
   const pane = Zotero.getActiveZoteroPane();
   const selectedItems = pane.getSelectedItems();
   let parentItem = selectedItems.length > 0 ? selectedItems[0] : null;
 
-  // 親アイテムが通常の文献（Regular Item）でない場合はスタンドアロンとして扱う
+  // 親アイテムがRegular Itemでなければ親はないとみなす
   if (parentItem && !parentItem.isRegularItem()) {
     parentItem = null;
   }
 
-  // 現在開いている（選択中の）コレクションを取得
+  const tempFilePath = PathUtils.join(PathUtils.tempDir, "new_presentation.odp");
+
+  // 現在選択中のコレクションを取得
   const collection = pane.getSelectedCollection();
 
-  // 2. パスの設定
-  const tempDir = PathUtils.tempDir;
-  const newFileName = "新規プレゼンテーション.odp";
-  const tempFilePath = PathUtils.join(tempDir, newFileName);
-
   try {
-    // プラグイン同梱のテンプレートファイルの絶対パスを取得
-    const templateURL = addonRootURI + "content/template.odp";
+    const templateURI = addonRootURI + "content/template.odp";
 
-    // fetch APIを使ってテンプレートを読み込み、一時ファイルに保存
-    const response = await fetch(templateURL);
+    const response = await fetch(templateURI);
     if (!response.ok) {
-      throw new Error(`Failed to load template from ${templateURL}: ${response.statusText}`);
+      throw new Error(`Failed to load template from ${templateURI}: ${response.statusText}`);
     }
+
     const arrayBuffer = await response.arrayBuffer();
     await IOUtils.write(tempFilePath, new Uint8Array(arrayBuffer));
 
-    // 3. Zoteroのインポートオプションを設定
     let attachmentOptions = {
       file: tempFilePath,
-      title: "LibreOffice Slide",
+      title: "New Presentation",
     };
 
+    // 親アイテムがある場合は親を指定する
     if (parentItem) {
       attachmentOptions.parentItemID = parentItem.id;
     } else {
-      // 親が無い場合は現在のユーザーライブラリのスタンドアロンアイテムにする
       attachmentOptions.libraryID = Zotero.Libraries.userLibraryID;
 
       // 開いているコレクションがある場合はそのコレクションに追加するようにオプション指定
@@ -82,10 +77,10 @@ async function createAndOpenLibreOfficeSlide() {
       }
     }
 
-    // Zotero内にファイルをインポート（storageディレクトリへの配置も自動で行われます）
+    // ファイルをZoteroにインポート
     const attachment = await Zotero.Attachments.importFromFile(attachmentOptions);
 
-    // importFromFileのオプションで追加されなかった場合へのフォールバック（念ため）
+    // importFromFileのオプションで追加されなかった場合へのフォールバック
     if (!parentItem && collection && attachment) {
       if (!attachment.getCollections().includes(collection.id)) {
         attachment.setCollections([collection.id]);
@@ -93,17 +88,17 @@ async function createAndOpenLibreOfficeSlide() {
       }
     }
 
-    // 4. 一時フォルダに作ったファイルは不要になったので削除
+    // 一時フォルダに作ったファイルを削除
     await IOUtils.remove(tempFilePath);
 
-    // 5. 作成したアタッチメントをシステム既定のアプリ（LibreOffice）で開く
+    // 作成したアタッチメントをシステム既定のアプリ(LibreOffice)で開く
     if (attachment) {
       const importedPath = await attachment.getFilePathAsync();
       Zotero.launchFile(importedPath);
     }
 
   } catch (error) {
-    Zotero.debug(`[Zotero Impress] エラーが発生しました: ${error}`);
+    Zotero.debug(`[Zotero Impress] Error occurred: ${error}`);
     Components.utils.reportError(error);
   }
 }
